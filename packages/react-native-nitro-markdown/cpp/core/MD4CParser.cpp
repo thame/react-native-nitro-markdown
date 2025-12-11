@@ -18,13 +18,14 @@ public:
         while (!nodeStack.empty()) nodeStack.pop();
         nodeStack.push(root);
         currentText.clear();
+        currentText.reserve(256);
     }
     
     void flushText() {
         if (!currentText.empty() && !nodeStack.empty()) {
             auto textNode = std::make_shared<MarkdownNode>(NodeType::Text);
-            textNode->content = currentText;
-            nodeStack.top()->addChild(textNode);
+            textNode->content = std::move(currentText);
+            nodeStack.top()->addChild(std::move(textNode));
             currentText.clear();
         }
     }
@@ -33,9 +34,7 @@ public:
         flushText();
         if (node && !nodeStack.empty()) {
             nodeStack.top()->addChild(node);
-        }
-        if (node) {
-            nodeStack.push(node);
+            nodeStack.push(std::move(node));
         }
     }
     
@@ -49,14 +48,10 @@ public:
     std::string getAttributeText(const MD_ATTRIBUTE* attr) {
         if (!attr || attr->size == 0) return "";
 
-        // Safety check for attribute size
-        MD_SIZE safeSize = attr->size;
-        if (safeSize > 100000) { // 100KB limit for attributes
-            safeSize = 100000;
-        }
-
         std::string result;
-        for (unsigned i = 0; i < safeSize; i++) {
+        result.reserve(attr->size);
+        
+        for (unsigned i = 0; i < attr->size; i++) {
             if (attr->substr_types[i] == MD_TEXT_NORMAL ||
                 attr->substr_types[i] == MD_TEXT_ENTITY ||
                 attr->substr_types[i] == MD_TEXT_NULLCHAR) {
@@ -67,7 +62,7 @@ public:
         }
         
         if (result.empty() && attr->text && attr->size > 0) {
-            result = std::string(attr->text, attr->size);
+            result.assign(attr->text, attr->size);
         }
         
         return result;
@@ -295,25 +290,21 @@ public:
         (void)detail;
         auto* impl = static_cast<Impl*>(userdata);
 
-        // For spans that capture content directly (not as child nodes)
         if (!impl->nodeStack.empty()) {
             auto currentNode = impl->nodeStack.top();
 
             switch (type) {
                 case MD_SPAN_CODE:
-                    // For inline code, capture the accumulated text as content
                     currentNode->content = impl->currentText;
                     impl->currentText.clear();
                     break;
 
                 case MD_SPAN_IMG:
-                    // For images, capture the accumulated text as alt text
                     currentNode->alt = impl->currentText;
                     impl->currentText.clear();
                     break;
 
                 default:
-                    // For other spans, use normal text flushing
                     break;
             }
         }
@@ -325,15 +316,7 @@ public:
     static int text(MD_TEXTTYPE type, const MD_CHAR* text, MD_SIZE size, void* userdata) {
         auto* impl = static_cast<Impl*>(userdata);
 
-        // Safety check for null or invalid text
-        if (!text || size == 0) {
-            return 0;
-        }
-
-        // Prevent excessive memory usage from very long text segments
-        if (size > 1000000) { // 1MB limit per text segment
-            size = 1000000;
-        }
+        if (!text || size == 0) return 0;
 
         switch (type) {
             case MD_TEXT_NULLCHAR:
@@ -382,13 +365,6 @@ MD4CParser::MD4CParser() : impl_(std::make_unique<Impl>()) {}
 MD4CParser::~MD4CParser() = default;
 
 std::shared_ptr<MarkdownNode> MD4CParser::parse(const std::string& markdown, const ParserOptions& options) {
-    // Input validation and safety checks
-    if (markdown.size() > 10000000) { // 10MB limit to prevent excessive memory usage
-        // Return empty document for extremely large inputs
-        auto root = std::make_shared<MarkdownNode>(NodeType::Document);
-        return root;
-    }
-
     impl_->reset();
     impl_->inputText = markdown.c_str();
     
@@ -406,35 +382,23 @@ std::shared_ptr<MarkdownNode> MD4CParser::parse(const std::string& markdown, con
     }
     
     MD_PARSER parser = {
-        0,  // abi_version
+        0,
         flags,
         &Impl::enterBlock,
         &Impl::leaveBlock,
         &Impl::enterSpan,
         &Impl::leaveSpan,
         &Impl::text,
-        nullptr,  // debug_log
+        nullptr,
         nullptr
     };
 
-    int result = md_parse(markdown.c_str(), 
-                         static_cast<MD_SIZE>(markdown.size()), 
-                         &parser, 
-                         impl_.get());
+    md_parse(markdown.c_str(), 
+             static_cast<MD_SIZE>(markdown.size()), 
+             &parser, 
+             impl_.get());
 
     impl_->flushText();
-    
-    if (result != 0) {
-        // Parse error - return empty document
-        auto errorDoc = std::make_shared<MarkdownNode>(NodeType::Document);
-        auto errorPara = std::make_shared<MarkdownNode>(NodeType::Paragraph);
-        auto errorText = std::make_shared<MarkdownNode>(NodeType::Text);
-        errorText->content = "[Parse Error]";
-        errorPara->addChild(errorText);
-        errorDoc->addChild(errorPara);
-        return errorDoc;
-    }
-    
     return impl_->root;
 }
 

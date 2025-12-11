@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+#include <algorithm>
 
 namespace NitroMarkdown {
 
@@ -68,6 +69,8 @@ public:
         testImage();
         testCodeBlock();
         testList();
+        testListWithInlineCode();
+        testTaskListWithInlineCode();
         testTable();
         testNestedFormatting();
 
@@ -241,6 +244,85 @@ private:
         auto list = result->children[0];
         TestRunner::assertEqual("list", nodeTypeToString(list->type), "List node");
         TestRunner::assertTrue(list->children.size() == 2, "Has 2 items");
+    }
+
+    static void testListWithInlineCode() {
+        MD4CParser parser;
+        ParserOptions options{true, true};
+        std::string markdown = "- Reply to Sarah's email about the `Series A` discussion";
+        auto result = parser.parse(markdown, options);
+
+        TestRunner::assertTrue(result->children.size() == 1, "Has list");
+        auto list = result->children[0];
+        TestRunner::assertEqual("list", nodeTypeToString(list->type), "List node");
+        TestRunner::assertTrue(list->children.size() == 1, "Has 1 item");
+
+        auto listItem = list->children[0];
+        TestRunner::assertEqual("list_item", nodeTypeToString(listItem->type), "List item node");
+        TestRunner::assertTrue(!listItem->children.empty(), "List item has children");
+
+        // Tight lists have content directly under list_item (no paragraph wrapper)
+        // Check list item children: should have text, code_inline, text
+        TestRunner::assertTrue(listItem->children.size() >= 3, "List item has at least 3 children (text, code, text)");
+
+        // Find code_inline node
+        auto codeNode = std::find_if(listItem->children.begin(), listItem->children.end(),
+            [](const auto& child) { return nodeTypeToString(child->type) == "code_inline"; });
+        TestRunner::assertTrue(codeNode != listItem->children.end(), "List item contains code_inline");
+        TestRunner::assertEqual("Series A", (*codeNode)->content.value_or(""), "Code content is 'Series A'");
+
+        // Verify no line breaks or soft breaks between text and code
+        bool hasUnwantedBreaks = false;
+        for (size_t i = 1; i < listItem->children.size(); i++) {
+            auto prevType = nodeTypeToString(listItem->children[i-1]->type);
+            auto currType = nodeTypeToString(listItem->children[i]->type);
+            if ((currType == "line_break" || currType == "soft_break") &&
+                (prevType == "text" || prevType == "code_inline")) {
+                hasUnwantedBreaks = true;
+                break;
+            }
+        }
+        TestRunner::assertTrue(!hasUnwantedBreaks, "No unwanted line breaks between text and inline code");
+    }
+
+    static void testTaskListWithInlineCode() {
+        MD4CParser parser;
+        ParserOptions options{true, true};
+        std::string markdown = "- [ ] Reply to Sarah's email about the `Series A` discussion";
+        auto result = parser.parse(markdown, options);
+
+        TestRunner::assertTrue(result->children.size() == 1, "Has list");
+        auto list = result->children[0];
+        TestRunner::assertEqual("list", nodeTypeToString(list->type), "List node");
+        TestRunner::assertTrue(list->children.size() == 1, "Has 1 item");
+
+        auto taskItem = list->children[0];
+        TestRunner::assertEqual("task_list_item", nodeTypeToString(taskItem->type), "Task list item node");
+        TestRunner::assertTrue(taskItem->checked.value_or(true) == false, "Task item is unchecked");
+        TestRunner::assertTrue(!taskItem->children.empty(), "Task item has children");
+
+        // Tight lists have content directly under task_list_item (no paragraph wrapper)
+        // Check task item children: should have text, code_inline, text
+        TestRunner::assertTrue(taskItem->children.size() >= 3, "Task item has at least 3 children (text, code, text)");
+
+        // Find code_inline node
+        auto codeNode = std::find_if(taskItem->children.begin(), taskItem->children.end(),
+            [](const auto& child) { return nodeTypeToString(child->type) == "code_inline"; });
+        TestRunner::assertTrue(codeNode != taskItem->children.end(), "Task item contains code_inline");
+        TestRunner::assertEqual("Series A", (*codeNode)->content.value_or(""), "Code content is 'Series A'");
+
+        // Verify no line breaks or soft breaks between text and code
+        bool hasUnwantedBreaks = false;
+        for (size_t i = 1; i < taskItem->children.size(); i++) {
+            auto prevType = nodeTypeToString(taskItem->children[i-1]->type);
+            auto currType = nodeTypeToString(taskItem->children[i]->type);
+            if ((currType == "line_break" || currType == "soft_break") &&
+                (prevType == "text" || prevType == "code_inline")) {
+                hasUnwantedBreaks = true;
+                break;
+            }
+        }
+        TestRunner::assertTrue(!hasUnwantedBreaks, "No unwanted line breaks between text and inline code in task list");
     }
 
     static void testTable() {

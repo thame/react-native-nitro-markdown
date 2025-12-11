@@ -244,6 +244,97 @@ describe('parseMarkdown', () => {
       const item = list.children![0];
       expect(item.type).toBe('list_item');
     });
+
+    it('parses list items with inline code without unwanted line breaks', () => {
+      const ast = parseMarkdown("- [ ] Reply to Sarah's email about the `Series A` discussion");
+      const list = ast.children![0];
+      const taskItem = list.children![0];
+      
+      expect(taskItem.type).toBe('task_list_item');
+      expect(taskItem.checked).toBe(false);
+      
+      // Get the paragraph inside the task item
+      const paragraph = taskItem.children!.find(c => c.type === 'paragraph');
+      expect(paragraph).toBeDefined();
+      
+      // Verify the paragraph children flow correctly: text -> code_inline -> text
+      const children = paragraph!.children!;
+      expect(children.length).toBeGreaterThanOrEqual(3);
+      
+      // Find text nodes and code_inline node
+      const textNodes = children.filter(c => c.type === 'text');
+      const codeNode = children.find(c => c.type === 'code_inline');
+      
+      expect(codeNode).toBeDefined();
+      expect(codeNode!.content).toBe('Series A');
+      expect(textNodes.length).toBeGreaterThanOrEqual(2);
+      
+      // Verify text flows together - first text should contain "about the"
+      const firstText = textNodes.find(t => t.content && t.content.includes('about the'));
+      expect(firstText).toBeDefined();
+      
+      // Verify no line breaks or soft breaks between text and code
+      const hasUnwantedBreaks = children.some((c, i) => {
+        if (i === 0) return false;
+        const prev = children[i - 1];
+        return (c.type === 'line_break' || c.type === 'soft_break') &&
+               (prev.type === 'text' || prev.type === 'code_inline');
+      });
+      expect(hasUnwantedBreaks).toBe(false);
+    });
+
+    it('parses regular list items with inline code without unwanted line breaks', () => {
+      const ast = parseMarkdown("- Reply to Sarah's email about the `Series A` discussion");
+      const list = ast.children![0];
+      const item = list.children![0];
+      
+      expect(item.type).toBe('list_item');
+      
+      // Get the paragraph inside the list item
+      const paragraph = item.children!.find(c => c.type === 'paragraph');
+      expect(paragraph).toBeDefined();
+      
+      // Verify the paragraph children flow correctly
+      const children = paragraph!.children!;
+      const codeNode = children.find(c => c.type === 'code_inline');
+      
+      expect(codeNode).toBeDefined();
+      expect(codeNode!.content).toBe('Series A');
+      
+      // Verify no line breaks or soft breaks between text and code
+      const hasUnwantedBreaks = children.some((c, i) => {
+        if (i === 0) return false;
+        const prev = children[i - 1];
+        return (c.type === 'line_break' || c.type === 'soft_break') &&
+               (prev.type === 'text' || prev.type === 'code_inline');
+      });
+      expect(hasUnwantedBreaks).toBe(false);
+    });
+
+    it('parses list items with italic text without unwanted line breaks', () => {
+      const ast = parseMarkdown("- Update your notes on the *TechCrunch* meeting");
+      const list = ast.children![0];
+      const item = list.children![0];
+      
+      expect(item.type).toBe('list_item');
+      
+      const paragraph = item.children!.find(c => c.type === 'paragraph');
+      expect(paragraph).toBeDefined();
+      
+      const children = paragraph!.children!;
+      const italicNode = children.find(c => c.type === 'italic');
+      
+      expect(italicNode).toBeDefined();
+      
+      // Verify no line breaks or soft breaks between text and italic
+      const hasUnwantedBreaks = children.some((c, i) => {
+        if (i === 0) return false;
+        const prev = children[i - 1];
+        return (c.type === 'line_break' || c.type === 'soft_break') &&
+               (prev.type === 'text' || prev.type === 'italic');
+      });
+      expect(hasUnwantedBreaks).toBe(false);
+    });
   });
 
   describe('horizontal rule', () => {
