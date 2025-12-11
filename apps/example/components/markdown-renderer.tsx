@@ -1,4 +1,4 @@
-import React, { useState, useLayoutEffect, useRef, useCallback } from 'react';
+import React, { useState, useLayoutEffect, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -6,61 +6,123 @@ import {
   StyleSheet,
   Linking,
   Image,
+  Platform,
   type LayoutChangeEvent,
-} from 'react-native';
-import MathJax from 'react-native-mathjax-svg';
-import type { MarkdownNode } from 'react-native-nitro-markdown';
+} from "react-native";
+import MathJax from "react-native-mathjax-svg";
+import type { MarkdownNode } from "react-native-nitro-markdown";
 
 interface MarkdownRendererProps {
   node: MarkdownNode;
   depth?: number;
+  inListItem?: boolean;
 }
 
 function getTextContent(node: MarkdownNode): string {
   if (node.content) return node.content;
-  if (!node.children) return '';
-  return node.children.map(getTextContent).join('');
+  if (!node.children) return "";
+  return node.children.map(getTextContent).join("");
 }
 
 const colors = {
-  background: '#0a0a0a',
-  surface: '#151515',
-  surfaceLight: '#1a1a1a',
-  border: '#252525',
-  text: '#e0e0e0',
-  textMuted: '#888',
-  heading: '#f0f0f0',
-  link: '#60a5fa',
-  code: '#fbbf24',
-  codeBackground: '#1a1a2e',
-  math: '#c084fc',
-  mathBackground: '#1e1a2e',
-  accent: '#4ade80',
-  danger: '#f87171',
-  tableHeader: '#0f172a',
-  tableHeaderText: '#94a3b8',
-  tableBorder: '#334155',
-  tableRowEven: '#0f172a',
-  tableRowOdd: '#1e293b',
-  blockquote: '#3b82f6',
+  background: "#0a0a0a",
+  surface: "#151515",
+  surfaceLight: "#1a1a1a",
+  border: "#252525",
+  text: "#e0e0e0",
+  textMuted: "#888",
+  heading: "#f0f0f0",
+  link: "#60a5fa",
+  code: "#fbbf24",
+  codeBackground: "#1a1a2e",
+  math: "#c084fc",
+  mathBackground: "#1e1a2e",
+  accent: "#4ade80",
+  danger: "#f87171",
+  tableHeader: "#0f172a",
+  tableHeaderText: "#94a3b8",
+  tableBorder: "#334155",
+  tableRowEven: "#0f172a",
+  tableRowOdd: "#1e293b",
+  blockquote: "#3b82f6",
+};
+
+const isInline = (type: MarkdownNode["type"]): boolean => {
+  return (
+    type === "text" ||
+    type === "bold" ||
+    type === "italic" ||
+    type === "strikethrough" ||
+    type === "link" ||
+    type === "code_inline" ||
+    type === "html_inline" ||
+    type === "math_inline" ||
+    type === "soft_break" ||
+    type === "line_break"
+  );
 };
 
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   node,
   depth = 0,
+  inListItem = false,
 }) => {
-  const renderChildren = (children?: MarkdownNode[]) => {
+  const renderChildren = (
+    children?: MarkdownNode[],
+    childInListItem = false
+  ) => {
     if (!children || children.length === 0) return null;
-    return children.map((child, index) => (
-      <MarkdownRenderer key={`${child.type}-${index}`} node={child} depth={depth + 1} />
-    ));
+
+    const elements: React.ReactNode[] = [];
+    let currentInlineGroup: MarkdownNode[] = [];
+
+    const flushInlineGroup = () => {
+      if (currentInlineGroup.length > 0) {
+        elements.push(
+          <Text key={`inline-group-${elements.length}`} style={styles.text}>
+            {currentInlineGroup.map((child, index) => (
+              <MarkdownRenderer
+                key={`${child.type}-${index}`}
+                node={child}
+                depth={depth + 1}
+                inListItem={childInListItem}
+              />
+            ))}
+          </Text>
+        );
+        currentInlineGroup = [];
+      }
+    };
+
+    children.forEach((child, index) => {
+      if (isInline(child.type)) {
+        currentInlineGroup.push(child);
+      } else {
+        flushInlineGroup();
+        elements.push(
+          <MarkdownRenderer
+            key={`${child.type}-${index}`}
+            node={child}
+            depth={depth + 1}
+            inListItem={childInListItem}
+          />
+        );
+      }
+    });
+
+    flushInlineGroup();
+    return elements;
   };
 
   switch (node.type) {
-    case 'document':
-      return <View style={styles.document}>{renderChildren(node.children)}</View>;
+    case "document":
+      return (
+        <View style={styles.document}>
+          {renderChildren(node.children, false)}
+        </View>
+      );
 
-    case 'heading': {
+    case "heading": {
       const level = node.level ?? 1;
       const headingStyles = [
         styles.heading,
@@ -73,43 +135,46 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       ];
       return (
         <Text style={headingStyles}>
-          {renderChildren(node.children)}
+          {renderChildren(node.children, inListItem)}
         </Text>
       );
     }
 
-    case 'paragraph':
+    case "paragraph": {
       return (
-        <Text style={styles.paragraph}>
-          {renderChildren(node.children)}
+        <Text
+          style={[styles.paragraph, inListItem && styles.paragraphInListItem]}
+        >
+          {renderChildren(node.children, inListItem)}
         </Text>
       );
+    }
 
-    case 'text':
+    case "text":
       return <Text style={styles.text}>{node.content}</Text>;
 
-    case 'bold':
+    case "bold":
       return (
         <Text style={styles.bold}>
-          {renderChildren(node.children)}
+          {renderChildren(node.children, inListItem)}
         </Text>
       );
 
-    case 'italic':
+    case "italic":
       return (
         <Text style={styles.italic}>
-          {renderChildren(node.children)}
+          {renderChildren(node.children, inListItem)}
         </Text>
       );
 
-    case 'strikethrough':
+    case "strikethrough":
       return (
         <Text style={styles.strikethrough}>
-          {renderChildren(node.children)}
+          {renderChildren(node.children, inListItem)}
         </Text>
       );
 
-    case 'link': {
+    case "link": {
       const handlePress = () => {
         if (node.href) {
           Linking.openURL(node.href);
@@ -117,70 +182,60 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       };
       return (
         <Text style={styles.link} onPress={handlePress}>
-          {renderChildren(node.children)}
+          {renderChildren(node.children, inListItem)}
         </Text>
       );
     }
 
-    case 'image': {
+    case "image": {
       const imageUrl = node.href;
       if (!imageUrl) return null;
       return (
-        <ImageRenderer 
-          url={imageUrl} 
-          title={node.title} 
-          alt={node.content}
-        />
+        <ImageRenderer url={imageUrl} title={node.title} alt={node.content} />
       );
     }
 
-    case 'code_inline':
-      return (
-        <Text style={styles.codeInline}>
-          {node.content}
-        </Text>
-      );
+    case "code_inline":
+      return <Text style={styles.codeInline}>{node.content}</Text>;
 
-    case 'code_block':
+    case "code_block":
       return (
         <View style={styles.codeBlock}>
           {node.language && (
             <Text style={styles.codeLanguage}>{node.language}</Text>
           )}
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <Text style={styles.codeBlockText}>
-              {getTextContent(node)}
-            </Text>
+            <Text style={styles.codeBlockText}>{getTextContent(node)}</Text>
           </ScrollView>
         </View>
       );
 
-    case 'blockquote':
+    case "blockquote":
       return (
         <View style={styles.blockquote}>
-          {renderChildren(node.children)}
+          {renderChildren(node.children, inListItem)}
         </View>
       );
 
-    case 'horizontal_rule':
+    case "horizontal_rule":
       return <View style={styles.horizontalRule} />;
 
-    case 'line_break':
-      return <Text>{'\n'}</Text>;
+    case "line_break":
+      return <Text>{"\n"}</Text>;
 
-    case 'soft_break':
+    case "soft_break":
       return <Text> </Text>;
 
-    case 'table':
+    case "table":
       return <TableRenderer node={node} />;
 
-    case 'table_head':
-    case 'table_body':
-    case 'table_row':
-    case 'table_cell':
+    case "table_head":
+    case "table_body":
+    case "table_row":
+    case "table_cell":
       return null;
 
-    case 'list': {
+    case "list": {
       return (
         <View style={[styles.list, depth > 0 && styles.listNested]}>
           {node.children?.map((child, index) => (
@@ -197,30 +252,23 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       );
     }
 
-    case 'list_item':
-      return (
-        <View style={styles.listItemContent}>
-          {renderChildren(node.children)}
-        </View>
-      );
+    case "list_item":
+      return <>{renderChildren(node.children, true)}</>;
 
-    case 'task_list_item':
+    case "task_list_item":
       return (
         <View style={styles.taskListItem}>
-          <Text style={styles.taskCheckbox}>
-            {node.checked ? '☑' : '☐'}
-          </Text>
+          <Text style={styles.taskCheckbox}>{node.checked ? "☑" : "☐"}</Text>
           <View style={styles.taskContent}>
-            {renderChildren(node.children)}
+            {renderChildren(node.children, true)}
           </View>
         </View>
       );
 
-    case 'math_inline': {
+    case "math_inline": {
       let mathContent = getTextContent(node);
       if (!mathContent) return null;
-      // Strip any existing $ delimiters from content
-      mathContent = mathContent.replace(/^\$+|\$+$/g, '').trim();
+      mathContent = mathContent.replace(/^\$+|\$+$/g, "").trim();
       return (
         <View style={styles.mathInlineContainer}>
           <MathJax fontSize={16} color={colors.math} fontCache>
@@ -230,11 +278,10 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       );
     }
 
-    case 'math_block': {
+    case "math_block": {
       let mathContent = getTextContent(node);
       if (!mathContent) return null;
-      // Strip any existing $$ delimiters from content
-      mathContent = mathContent.replace(/^\$+|\$+$/g, '').trim();
+      mathContent = mathContent.replace(/^\$+|\$+$/g, "").trim();
       return (
         <View style={styles.mathBlock}>
           <MathJax fontSize={20} color={colors.math} fontCache>
@@ -244,19 +291,14 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       );
     }
 
-    case 'html_block':
-    case 'html_inline':
-      return (
-        <Text style={styles.htmlStub}>
-          {node.content || '[HTML]'}
-        </Text>
-      );
+    case "html_block":
+    case "html_inline":
+      return <Text style={styles.htmlStub}>{node.content || "[HTML]"}</Text>;
 
     default:
       return (
         <Text style={styles.unknown}>
-          [{node.type}]
-          {renderChildren(node.children)}
+          [{node.type}]{renderChildren(node.children, inListItem)}
         </Text>
       );
   }
@@ -274,18 +316,18 @@ function extractTableData(node: MarkdownNode): TableData {
   const alignments: (string | undefined)[] = [];
 
   for (const child of node.children ?? []) {
-    if (child.type === 'table_head') {
+    if (child.type === "table_head") {
       for (const row of child.children ?? []) {
-        if (row.type === 'table_row') {
+        if (row.type === "table_row") {
           for (const cell of row.children ?? []) {
             headers.push(cell);
             alignments.push(cell.align);
           }
         }
       }
-    } else if (child.type === 'table_body') {
+    } else if (child.type === "table_body") {
       for (const row of child.children ?? []) {
-        if (row.type === 'table_row') {
+        if (row.type === "table_row") {
           const rowCells: MarkdownNode[] = [];
           for (const cell of row.children ?? []) {
             rowCells.push(cell);
@@ -301,7 +343,7 @@ function extractTableData(node: MarkdownNode): TableData {
 
 function getCellText(node: MarkdownNode): string {
   if (node.content) return node.content;
-  let text = '';
+  let text = "";
   for (const child of node.children ?? []) {
     text += getCellText(child);
   }
@@ -314,45 +356,50 @@ const TableRenderer: React.FC<{ node: MarkdownNode }> = ({ node }) => {
   const [columnWidths, setColumnWidths] = useState<number[]>([]);
   const measuredWidths = useRef<Map<string, number>>(new Map());
   const pendingMeasurements = useRef<number>(0);
-  const totalCells = columnCount + (rows.length * columnCount);
+  const totalCells = columnCount + rows.length * columnCount;
 
-  const handleCellLayout = useCallback((colIndex: number, cellKey: string, width: number) => {
-    measuredWidths.current.set(cellKey, width);
-    pendingMeasurements.current++;
+  const handleCellLayout = useCallback(
+    (colIndex: number, cellKey: string, width: number) => {
+      measuredWidths.current.set(cellKey, width);
+      pendingMeasurements.current++;
 
-    if (pendingMeasurements.current >= totalCells) {
-      const maxWidths: number[] = new Array(columnCount).fill(0);
-      
-      measuredWidths.current.forEach((w, key) => {
-        const col = parseInt(key.split('-')[1], 10);
-        if (!isNaN(col) && col < columnCount) {
-          maxWidths[col] = Math.max(maxWidths[col], w);
-        }
-      });
-      
-      setColumnWidths(maxWidths);
-    }
-  }, [columnCount, totalCells]);
+      if (pendingMeasurements.current >= totalCells) {
+        const maxWidths: number[] = new Array(columnCount).fill(0);
 
-  const getAlignment = (index: number): 'flex-start' | 'center' | 'flex-end' => {
+        measuredWidths.current.forEach((w, key) => {
+          const col = parseInt(key.split("-")[1], 10);
+          if (!isNaN(col) && col < columnCount) {
+            maxWidths[col] = Math.max(maxWidths[col], w);
+          }
+        });
+
+        setColumnWidths(maxWidths);
+      }
+    },
+    [columnCount, totalCells]
+  );
+
+  const getAlignment = (
+    index: number
+  ): "flex-start" | "center" | "flex-end" => {
     const align = alignments[index];
-    if (align === 'center') return 'center';
-    if (align === 'right') return 'flex-end';
-    return 'flex-start';
+    if (align === "center") return "center";
+    if (align === "right") return "flex-end";
+    return "flex-start";
   };
 
-  const getTextAlign = (index: number): 'left' | 'center' | 'right' => {
+  const getTextAlign = (index: number): "left" | "center" | "right" => {
     const align = alignments[index];
-    if (align === 'center') return 'center';
-    if (align === 'right') return 'right';
-    return 'left';
+    if (align === "center") return "center";
+    if (align === "right") return "right";
+    return "left";
   };
 
   const hasWidths = columnWidths.length === columnCount;
 
   return (
-    <ScrollView 
-      horizontal 
+    <ScrollView
+      horizontal
       showsHorizontalScrollIndicator={true}
       style={styles.tableContainer}
       contentContainerStyle={styles.tableContentContainer}
@@ -371,11 +418,20 @@ const TableRenderer: React.FC<{ node: MarkdownNode }> = ({ node }) => {
               ]}
               onLayout={(e: LayoutChangeEvent) => {
                 if (!hasWidths) {
-                  handleCellLayout(colIndex, `header-${colIndex}`, e.nativeEvent.layout.width);
+                  handleCellLayout(
+                    colIndex,
+                    `header-${colIndex}`,
+                    e.nativeEvent.layout.width
+                  );
                 }
               }}
             >
-              <Text style={[styles.tableHeaderText, { textAlign: getTextAlign(colIndex) }]}>
+              <Text
+                style={[
+                  styles.tableHeaderText,
+                  { textAlign: getTextAlign(colIndex) },
+                ]}
+              >
                 <CellContent node={cell} />
               </Text>
             </View>
@@ -383,8 +439,8 @@ const TableRenderer: React.FC<{ node: MarkdownNode }> = ({ node }) => {
         </View>
 
         {rows.map((row, rowIndex) => (
-          <View 
-            key={`row-${rowIndex}`} 
+          <View
+            key={`row-${rowIndex}`}
             style={[
               styles.tableBodyRow,
               rowIndex % 2 === 0 ? styles.tableRowEven : styles.tableRowOdd,
@@ -403,11 +459,20 @@ const TableRenderer: React.FC<{ node: MarkdownNode }> = ({ node }) => {
                 ]}
                 onLayout={(e: LayoutChangeEvent) => {
                   if (!hasWidths) {
-                    handleCellLayout(colIndex, `cell-${rowIndex}-${colIndex}`, e.nativeEvent.layout.width);
+                    handleCellLayout(
+                      colIndex,
+                      `cell-${rowIndex}-${colIndex}`,
+                      e.nativeEvent.layout.width
+                    );
                   }
                 }}
               >
-                <Text style={[styles.tableCellText, { textAlign: getTextAlign(colIndex) }]}>
+                <Text
+                  style={[
+                    styles.tableCellText,
+                    { textAlign: getTextAlign(colIndex) },
+                  ]}
+                >
                   <CellContent node={cell} />
                 </Text>
               </View>
@@ -421,7 +486,7 @@ const TableRenderer: React.FC<{ node: MarkdownNode }> = ({ node }) => {
 
 const CellContent: React.FC<{ node: MarkdownNode }> = ({ node }) => {
   if (!node.children || node.children.length === 0) {
-    return <>{node.content || ''}</>;
+    return <>{node.content || ""}</>;
   }
 
   return (
@@ -435,26 +500,26 @@ const CellContent: React.FC<{ node: MarkdownNode }> = ({ node }) => {
 
 const CellChildRenderer: React.FC<{ node: MarkdownNode }> = ({ node }) => {
   switch (node.type) {
-    case 'text':
+    case "text":
       return <Text>{node.content}</Text>;
-    case 'bold':
+    case "bold":
       return (
         <Text style={styles.bold}>
           <CellContent node={node} />
         </Text>
       );
-    case 'italic':
+    case "italic":
       return (
         <Text style={styles.italic}>
           <CellContent node={node} />
         </Text>
       );
-    case 'code_inline':
+    case "code_inline":
       return <Text style={styles.codeInline}>{node.content}</Text>;
-    case 'link':
+    case "link":
       return (
-        <Text 
-          style={styles.link} 
+        <Text
+          style={styles.link}
           onPress={() => node.href && Linking.openURL(node.href)}
         >
           <CellContent node={node} />
@@ -465,18 +530,20 @@ const CellChildRenderer: React.FC<{ node: MarkdownNode }> = ({ node }) => {
   }
 };
 
-const ImageRenderer: React.FC<{ url: string; title?: string; alt?: string }> = ({ 
-  url, 
-  title, 
-  alt 
-}) => {
+const ImageRenderer: React.FC<{
+  url: string;
+  title?: string;
+  alt?: string;
+}> = ({ url, title, alt }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
   if (error) {
     return (
       <View style={styles.imageError}>
-        <Text style={styles.imageErrorText}>🖼️ {alt || title || 'Image failed to load'}</Text>
+        <Text style={styles.imageErrorText}>
+          🖼️ {alt || title || "Image failed to load"}
+        </Text>
         <Text style={styles.imageErrorUrl}>{url}</Text>
       </View>
     );
@@ -499,9 +566,7 @@ const ImageRenderer: React.FC<{ url: string; title?: string; alt?: string }> = (
           setError(true);
         }}
       />
-      {title && !loading && (
-        <Text style={styles.imageCaption}>{title}</Text>
-      )}
+      {title && !loading && <Text style={styles.imageCaption}>{title}</Text>}
     </View>
   );
 };
@@ -513,19 +578,19 @@ const ListItemWrapper: React.FC<{
   start: number;
   depth: number;
 }> = ({ node, index, ordered, start, depth }) => {
-  const isTask = node.type === 'task_list_item';
-  
+  const isTask = node.type === "task_list_item";
+
   if (isTask) {
-    return <MarkdownRenderer node={node} depth={depth + 1} />;
+    return <MarkdownRenderer node={node} depth={depth + 1} inListItem={true} />;
   }
 
-  const bullet = ordered ? `${start + index}.` : '•';
-  
+  const bullet = ordered ? `${start + index}.` : "•";
+
   return (
     <View style={styles.listItem}>
       <Text style={styles.listBullet}>{bullet}</Text>
       <View style={styles.listItemContent}>
-        <MarkdownRenderer node={node} depth={depth + 1} />
+        <MarkdownRenderer node={node} depth={depth + 1} inListItem={true} />
       </View>
     </View>
   );
@@ -538,7 +603,7 @@ const styles = StyleSheet.create({
 
   heading: {
     color: colors.heading,
-    fontWeight: '700',
+    fontWeight: "700",
     marginTop: 20,
     marginBottom: 12,
   },
@@ -577,59 +642,64 @@ const styles = StyleSheet.create({
     lineHeight: 26,
     marginBottom: 16,
   },
+  paragraphInListItem: {
+    marginBottom: 0,
+    marginTop: 0,
+    flexShrink: 1,
+  },
   text: {
     color: colors.text,
   },
   bold: {
-    fontWeight: '700',
+    fontWeight: "700",
     color: colors.text,
   },
   italic: {
-    fontStyle: 'italic',
+    fontStyle: "italic",
     color: colors.text,
   },
   strikethrough: {
-    textDecorationLine: 'line-through',
+    textDecorationLine: "line-through",
     color: colors.textMuted,
   },
 
   link: {
     color: colors.link,
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
   },
 
   imageContainer: {
     marginVertical: 12,
-    alignItems: 'center',
+    alignItems: "center",
   },
   image: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: 8,
     backgroundColor: colors.surface,
   },
   imageHidden: {
     opacity: 0,
-    position: 'absolute',
+    position: "absolute",
   },
   imageLoading: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: 8,
     backgroundColor: colors.surface,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   imageLoadingText: {
     color: colors.textMuted,
     fontSize: 14,
   },
   imageError: {
-    width: '100%',
+    width: "100%",
     padding: 16,
     borderRadius: 8,
     backgroundColor: colors.surface,
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 12,
   },
   imageErrorText: {
@@ -646,18 +716,19 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: 12,
     marginTop: 8,
-    fontStyle: 'italic',
-    textAlign: 'center',
+    fontStyle: "italic",
+    textAlign: "center",
   },
 
   codeInline: {
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
     fontSize: 14,
     color: colors.code,
     backgroundColor: colors.codeBackground,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
+    ...(Platform.OS === "android" && { includeFontPadding: false }),
   },
   codeBlock: {
     backgroundColor: colors.codeBackground,
@@ -665,18 +736,18 @@ const styles = StyleSheet.create({
     padding: 16,
     marginVertical: 12,
     borderWidth: 1,
-    borderColor: '#2d2d4a',
+    borderColor: "#2d2d4a",
   },
   codeLanguage: {
     color: colors.accent,
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 8,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   codeBlockText: {
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
     fontSize: 13,
     color: colors.text,
     lineHeight: 22,
@@ -707,12 +778,12 @@ const styles = StyleSheet.create({
   },
   table: {
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 1,
     borderColor: colors.tableBorder,
   },
   tableHeaderRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: colors.tableHeader,
     borderBottomWidth: 2,
     borderBottomColor: colors.tableBorder,
@@ -727,12 +798,12 @@ const styles = StyleSheet.create({
   tableHeaderText: {
     color: colors.tableHeaderText,
     fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    fontWeight: "600",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   tableBodyRow: {
-    flexDirection: 'row',
+    flexDirection: "row",
     borderBottomWidth: 1,
     borderBottomColor: colors.tableBorder,
   },
@@ -751,7 +822,7 @@ const styles = StyleSheet.create({
     minWidth: 80,
     borderRightWidth: 1,
     borderRightColor: colors.tableBorder,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   tableFirstCell: {},
   tableLastCell: {
@@ -771,8 +842,9 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   listItem: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 6,
+    alignItems: "flex-start",
   },
   listBullet: {
     color: colors.accent,
@@ -782,11 +854,13 @@ const styles = StyleSheet.create({
   },
   listItemContent: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
 
   taskListItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 6,
   },
   taskCheckbox: {
@@ -796,12 +870,14 @@ const styles = StyleSheet.create({
   },
   taskContent: {
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
 
   mathInlineContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
   },
   mathBlock: {
     backgroundColor: colors.mathBackground,
@@ -809,16 +885,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     marginVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     borderWidth: 1,
-    borderColor: '#3d2d6a',
+    borderColor: "#3d2d6a",
     minHeight: 60,
   },
 
   htmlStub: {
     color: colors.danger,
-    fontFamily: 'monospace',
+    fontFamily: "monospace",
     fontSize: 12,
   },
 

@@ -1,5 +1,5 @@
 // Complex markdown test data for benchmarking
-export const COMPLEX_MARKDOWN = `# 🚀 Nitro Markdown Performance Test
+export const COMPLEX_MARKDOWN = `# 🚀 Nitro Markdown
 
 Welcome to the **high-performance** markdown parser powered by \`md4c\` and **Nitro Modules**.
 
@@ -12,7 +12,26 @@ This parser supports *all* the features you'd expect:
 - ~~Strikethrough text~~ (GFM)
 - \`Inline code\` snippets
 - [Links](https://github.com)
-- ![Images](https://placehold.co/150 "Placeholder")
+- ![Landscape](https://picsum.photos/300/200 "Random image from Picsum")
+
+## Some Lists / Tasks
+
+**Quick actions:**
+
+- [ ] Reply to Sarah's email about the \`Series A\` discussion
+- [ ] Update your notes on the *TechCrunch* meeting
+- [x] Review the [shared document](https://docs.example.com/pitch) before Thursday
+
+**List:**
+
+- Reply to Sarah's email about the \`Series A\` discussion
+- Update your notes on the *TechCrunch* meeting
+- Review the [shared document](https://docs.example.com/pitch) before Thursday
+
+#### Images
+- ![Landscape](https://picsum.photos/300/200 "Random image from Picsum")
+- ![City](https://picsum.photos/seed/markdown/300/150 "City skyline")
+
 
 ## Advanced GFM Features
 
