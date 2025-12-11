@@ -1,0 +1,16 @@
+{
+  "cxxNamespace": ["NitroMarkdown"],
+  "ios": {
+    "iosModuleName": "NitroMarkdown"
+  },
+  "android": {
+    "androidNamespace": ["com", "nitromarkdown"],
+    "androidCxxLibName": "NitroMarkdown"
+  },
+  "autolinking": {
+    "MarkdownParser": {
+      "cpp": "HybridMarkdownParser"
+    }
+  }
+}
+
