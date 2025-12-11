@@ -62,7 +62,7 @@ const isInline = (type: MarkdownNode["type"]): boolean => {
   );
 };
 
-export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
+const MarkdownRendererComponent: React.FC<MarkdownRendererProps> = ({
   node,
   depth = 0,
   inListItem = false,
@@ -303,6 +303,8 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
       );
   }
 };
+
+export const MarkdownRenderer = React.memo(MarkdownRendererComponent);
 
 interface TableData {
   headers: MarkdownNode[];

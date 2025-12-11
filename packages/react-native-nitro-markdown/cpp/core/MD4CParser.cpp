@@ -18,13 +18,14 @@ public:
         while (!nodeStack.empty()) nodeStack.pop();
         nodeStack.push(root);
         currentText.clear();
+        currentText.reserve(256);
     }
     
     void flushText() {
         if (!currentText.empty() && !nodeStack.empty()) {
             auto textNode = std::make_shared<MarkdownNode>(NodeType::Text);
-            textNode->content = currentText;
-            nodeStack.top()->addChild(textNode);
+            textNode->content = std::move(currentText);
+            nodeStack.top()->addChild(std::move(textNode));
             currentText.clear();
         }
     }
@@ -33,9 +34,7 @@ public:
         flushText();
         if (node && !nodeStack.empty()) {
             nodeStack.top()->addChild(node);
-        }
-        if (node) {
-            nodeStack.push(node);
+            nodeStack.push(std::move(node));
         }
     }
     
@@ -50,6 +49,8 @@ public:
         if (!attr || attr->size == 0) return "";
 
         std::string result;
+        result.reserve(attr->size);
+        
         for (unsigned i = 0; i < attr->size; i++) {
             if (attr->substr_types[i] == MD_TEXT_NORMAL ||
                 attr->substr_types[i] == MD_TEXT_ENTITY ||
@@ -61,7 +62,7 @@ public:
         }
         
         if (result.empty() && attr->text && attr->size > 0) {
-            result = std::string(attr->text, attr->size);
+            result.assign(attr->text, attr->size);
         }
         
         return result;
