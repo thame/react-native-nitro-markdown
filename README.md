@@ -1,5 +1,6 @@
 <p align="center">
   <img src="./readme/demo.gif" alt="react-native-nitro-markdown demo" width="300" />
+  <img src="./readme/stream-demo.gif" alt="react-native-nitro-markdown stream demo" width="300" />
 </p>
 
 # react-native-nitro-markdown 🚀
@@ -162,6 +163,38 @@ import { parseMarkdown } from "react-native-nitro-markdown/headless";
 const ast = parseMarkdown("# Hello World");
 ```
 
+### Option 5: High-Performance Streaming (LLMs)
+
+When streaming text token-by-token (e.g., from ChatGPT or Gemini), re-parsing the entire document in JavaScript for every token is too slow.
+
+**Nitro Markdown** enables **Native Streaming** via JSI. The text buffer is maintained in C++ and updates are pushed directly to the native view, bypassing React completely.
+
+```tsx
+import {
+  MarkdownStream,
+  useMarkdownSession,
+} from "react-native-nitro-markdown";
+
+export function AIResponseStream() {
+  // 1. Create a native session
+  const session = useMarkdownSession();
+
+  useEffect(() => {
+    // 2. Append chunks directly to C++ (Zero-Latency)
+    // Example: Socket.on('data', (chunk) => session.getSession().append(chunk));
+
+    session.getSession().append("Hello **Nitro**!");
+
+    return () => session.clear();
+  }, [session]);
+
+  // 3. Render the localized stream component
+  return (
+    <MarkdownStream session={session.getSession()} options={{ gfm: true }} />
+  );
+}
+```
+
 ---
 
 ## 🛠️ Headless vs. Non-Headless
@@ -176,7 +209,6 @@ const ast = parseMarkdown("# Hello World");
 ---
 
 ### Basic Parsing API
-
 The parsing is synchronous and instant. It returns a fully typed JSON AST.
 
 ```typescript

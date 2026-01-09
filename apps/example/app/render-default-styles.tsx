@@ -3,8 +3,6 @@ import {
   Markdown,
   Heading,
   Paragraph,
-  Link,
-  Blockquote,
   defaultMarkdownTheme,
 } from "react-native-nitro-markdown";
 import {
@@ -12,13 +10,9 @@ import {
   CUSTOM_RENDER_COMPONENTS,
 } from "../markdown-test-data";
 
-/**
- * A "Retro" theme example that uses the default renderers
- * but overrides their styles using the provider.
- */
 const retroTheme = {
   colors: {
-    text: "#334155", // Slate 700
+    text: "#334155",
     textMuted: "#64748b",
     heading: "#e11d48",
     link: "#4f46e5",

@@ -11,10 +11,17 @@ export { DefaultMarkdownRenderer } from "./default-markdown-renderer";
  * ```
  */
 export { Markdown } from "./markdown";
+
+/**
+ * Markdown component that supports streaming updates.
+ */
+export { MarkdownStream } from "./markdown-stream";
+
 export { useMarkdownContext } from "./MarkdownContext";
 export type {
   CustomRenderer,
   CustomRenderers,
+  CustomRendererProps,
   NodeRendererProps,
 } from "./MarkdownContext";
 
@@ -33,3 +40,8 @@ export { List, ListItem, TaskListItem } from "./renderers/list";
 export { TableRenderer } from "./renderers/table";
 export { Image } from "./renderers/image";
 export { MathInline, MathBlock } from "./renderers/math";
+
+// Streaming API
+export { createMarkdownSession } from "./MarkdownSession";
+export type { MarkdownSession } from "./MarkdownSession";
+export { useMarkdownSession, useStream } from "./use-markdown-stream";

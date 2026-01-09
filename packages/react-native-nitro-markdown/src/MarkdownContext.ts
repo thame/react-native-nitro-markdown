@@ -2,11 +2,22 @@ import { createContext, useContext, ReactNode } from "react";
 import { defaultMarkdownTheme, type MarkdownTheme } from "./theme";
 import type { MarkdownNode } from "./headless";
 
-export type CustomRenderer = (props: {
+export interface NodeRendererProps {
+  node: MarkdownNode;
+  depth: number;
+  inListItem: boolean;
+  parentIsText?: boolean;
+}
+
+export interface CustomRendererProps {
   node: MarkdownNode;
   children: ReactNode;
   Renderer: React.ComponentType<NodeRendererProps>;
-}) => ReactNode | undefined;
+}
+
+export type CustomRenderer = (
+  props: CustomRendererProps
+) => ReactNode | undefined;
 
 /**
  * Object mapping node types to custom renderers.
@@ -28,9 +39,3 @@ export const MarkdownContext = createContext<MarkdownContextValue>({
 
 export const useMarkdownContext = () => useContext(MarkdownContext);
 
-export interface NodeRendererProps {
-  node: MarkdownNode;
-  depth: number;
-  inListItem: boolean;
-  parentIsText?: boolean;
-}

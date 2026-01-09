@@ -100,10 +100,8 @@ export default function BenchmarkScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>🏁 The Ultimate Showdown</Text>
-        <Text style={styles.subtitle}>
-          Nitro (C++) vs Top 3 JavaScript Parsers
-        </Text>
+        <Text style={styles.title}>Benchmark Showdown</Text>
+        <Text style={styles.subtitle}>Nitro vs Top 3 JS Libraries</Text>
         <Text style={styles.dataSize}>
           Testing: {(REPEATED_MARKDOWN.length / 1024).toFixed(1)} KB of complex
           markdown
@@ -111,7 +109,7 @@ export default function BenchmarkScreen() {
       </View>
 
       <Pressable style={styles.benchmarkButton} onPress={runBenchmark}>
-        <Text style={styles.benchmarkText}>🏁 Run Ultimate Benchmark</Text>
+        <Text style={styles.benchmarkText}>Run Benchmark</Text>
       </Pressable>
 
       <ScrollView
@@ -144,8 +142,8 @@ export default function BenchmarkScreen() {
           </View>
         ) : (
           <Text style={styles.instructionText}>
-            Tap "Run Ultimate Benchmark" to compare Nitro (C++) against the top
-            3 JavaScript markdown parsers!
+            Tap "Run Benchmark" to compare Nitro against the top 3 JavaScript
+            markdown libraries!
           </Text>
         )}
       </ScrollView>

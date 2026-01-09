@@ -7,6 +7,7 @@ import {
   type ViewStyle,
 } from "react-native";
 import { useMarkdownContext } from "../MarkdownContext";
+import type { MarkdownTheme } from "../theme";
 
 let MathJaxComponent: React.ComponentType<{
   fontSize?: number;
@@ -34,7 +35,7 @@ interface MathInlineProps {
  * Note: Renders as a View since SVG can't be nested in Text.
  */
 
-const createMathStyles = (theme: any) =>
+const createMathStyles = (theme: MarkdownTheme) =>
   StyleSheet.create({
     mathInlineContainer: {
       flexDirection: "row",
@@ -160,3 +161,4 @@ export const MathBlock: React.FC<MathBlockProps> = ({ content }) => {
     </View>
   );
 };
+

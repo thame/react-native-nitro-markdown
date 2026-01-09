@@ -1,14 +1,12 @@
-import React, { ReactNode } from "react";
-import { Text, StyleSheet, Linking, TextStyle } from "react-native";
+import React, { ReactNode, useMemo } from "react";
+import { Text, StyleSheet, Linking, type TextStyle } from "react-native";
+import { useMarkdownContext } from "../MarkdownContext";
 
 interface LinkProps {
   href: string;
   children: ReactNode;
   style?: TextStyle;
 }
-
-import { useMarkdownContext } from "../MarkdownContext";
-import { useMemo } from "react";
 
 export const Link: React.FC<LinkProps> = ({ href, children, style }) => {
   const { theme } = useMarkdownContext();
@@ -37,3 +35,4 @@ export const Link: React.FC<LinkProps> = ({ href, children, style }) => {
     </Text>
   );
 };
+

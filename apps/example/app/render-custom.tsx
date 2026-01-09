@@ -10,17 +10,13 @@ import {
   Markdown,
   type MarkdownNode,
   TableRenderer,
-  useMarkdownContext,
+  type CustomRendererProps,
 } from "react-native-nitro-markdown";
 import {
   COMPLEX_MARKDOWN,
   CUSTOM_RENDER_COMPONENTS,
 } from "../markdown-test-data";
 
-/**
- * Custom Heading Renderer
- * Adds a colorful bar to the left and different typography.
- */
 const CustomHeading = ({
   node,
   children,
@@ -38,10 +34,6 @@ const CustomHeading = ({
   );
 };
 
-/**
- * Custom Blockquote Renderer
- * Renders as a modern "Callout" or "Alert" box.
- */
 const CustomBlockquote = ({ children }: { children: ReactNode }) => {
   return (
     <View style={customStyles.blockquote}>
@@ -51,10 +43,6 @@ const CustomBlockquote = ({ children }: { children: ReactNode }) => {
   );
 };
 
-/**
- * Custom Image Renderer
- * Adds a shadow, border radius, and caption.
- */
 const CustomImage = ({ node }: { node: MarkdownNode }) => {
   return (
     <View style={customStyles.imageCard}>
@@ -70,21 +58,13 @@ const CustomImage = ({ node }: { node: MarkdownNode }) => {
   );
 };
 
-/**
- * Custom Table Renderer
- * Simplified version with different colors.
- */
-const CustomTable = (props: {
-  node: MarkdownNode;
-  children: ReactNode;
-  Renderer: React.ComponentType<any>;
-}) => {
+const CustomTable = (props: CustomRendererProps) => {
   return <TableRenderer node={props.node} Renderer={props.Renderer} />;
 };
 
 const lightTheme = {
   colors: {
-    text: "#1f2937", // Dark gray for light background
+    text: "#1f2937",
     textMuted: "#6b7280",
     heading: "#111827",
     link: "#2563eb",
@@ -127,7 +107,6 @@ export default function RenderCustomScreen() {
             blockquote: CustomBlockquote,
             image: CustomImage,
             table: CustomTable,
-            // We can also inline simple ones
             horizontal_rule: () => <View style={customStyles.hr} />,
           }}
         >
@@ -141,14 +120,14 @@ export default function RenderCustomScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F3F4F6", // Light gray background
+    backgroundColor: "#F3F4F6",
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 120, // Fallback, will be overridden by inline style if using hook later
+    paddingBottom: 120,
   },
 });
 
@@ -162,7 +141,7 @@ const customStyles = StyleSheet.create({
   headingBar: {
     width: 6,
     height: "100%",
-    backgroundColor: "#6366F1", // Indigo
+    backgroundColor: "#6366F1",
     marginRight: 12,
     borderRadius: 3,
   },
@@ -173,7 +152,7 @@ const customStyles = StyleSheet.create({
   },
   blockquote: {
     flexDirection: "row",
-    backgroundColor: "#EFF6FF", // Blue 50
+    backgroundColor: "#EFF6FF",
     borderRadius: 12,
     padding: 16,
     marginVertical: 16,

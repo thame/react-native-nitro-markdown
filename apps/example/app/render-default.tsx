@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { Markdown } from "react-native-nitro-markdown";
 import { COMPLEX_MARKDOWN } from "../markdown-test-data";
 import { useBottomTabHeight } from "../hooks/use-bottom-tab-height";

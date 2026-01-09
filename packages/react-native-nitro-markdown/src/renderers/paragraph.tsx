@@ -1,10 +1,11 @@
-import React, { ReactNode } from "react";
-import { View, StyleSheet, TextStyle } from "react-native";
+import React, { ReactNode, useMemo } from "react";
+import { View, StyleSheet, type StyleProp, type ViewStyle } from "react-native";
+import { useMarkdownContext } from "../MarkdownContext";
 
 interface ParagraphProps {
   children: ReactNode;
   inListItem?: boolean;
-  style?: TextStyle;
+  style?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -12,9 +13,6 @@ interface ParagraphProps {
  * Uses View with flexDirection: 'row' and flexWrap: 'wrap' to allow inline flow
  * of both text and non-text elements (like inline math).
  */
-import { useMarkdownContext } from "../MarkdownContext";
-import { useMemo } from "react";
-
 export const Paragraph: React.FC<ParagraphProps> = ({
   children,
   inListItem,
@@ -52,3 +50,4 @@ export const Paragraph: React.FC<ParagraphProps> = ({
     </View>
   );
 };
+

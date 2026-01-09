@@ -1,5 +1,6 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useMarkdownContext } from "../MarkdownContext";
 
 interface ListProps {
   ordered: boolean;
@@ -7,9 +8,6 @@ interface ListProps {
   depth: number;
   children: ReactNode;
 }
-
-import { useMarkdownContext } from "../MarkdownContext";
-import { useMemo } from "react";
 
 export const List: React.FC<ListProps> = ({
   ordered,
@@ -124,3 +122,4 @@ export const TaskListItem: React.FC<TaskListItemProps> = ({
     </View>
   );
 };
+

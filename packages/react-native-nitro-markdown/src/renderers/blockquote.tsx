@@ -1,13 +1,11 @@
-import React, { ReactNode } from "react";
-import { View, StyleSheet, ViewStyle } from "react-native";
+import React, { ReactNode, useMemo } from "react";
+import { View, StyleSheet, type ViewStyle } from "react-native";
+import { useMarkdownContext } from "../MarkdownContext";
 
 interface BlockquoteProps {
   children: ReactNode;
   style?: ViewStyle;
 }
-
-import { useMarkdownContext } from "../MarkdownContext";
-import { useMemo } from "react";
 
 export const Blockquote: React.FC<BlockquoteProps> = ({ children, style }) => {
   const { theme } = useMarkdownContext();
@@ -30,3 +28,4 @@ export const Blockquote: React.FC<BlockquoteProps> = ({ children, style }) => {
 
   return <View style={[styles.blockquote, style]}>{children}</View>;
 };
+

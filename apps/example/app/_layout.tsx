@@ -1,7 +1,7 @@
 import { useBottomTabHeight } from "../hooks/use-bottom-tab-height";
 import { Tabs } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, View, Text, Platform } from "react-native";
+import { StyleSheet, View, Platform } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function RootLayout() {
@@ -82,6 +82,19 @@ export default function RootLayout() {
             tabBarIcon: ({ color, size }) => (
               <Ionicons name="layers-outline" size={24} color={color} />
             ),
+          }}
+        />
+        <Tabs.Screen
+          name="render-stream"
+          options={{
+            title: "Token Stream",
+            tabBarLabel: "Stream",
+            tabBarIcon: ({ color, size }) => (
+              <Ionicons name="flash-outline" size={24} color={color} />
+            ),
+            header: () => null,
+          }}
+        />
           }}
         />
       </Tabs>

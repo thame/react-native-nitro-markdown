@@ -10,7 +10,8 @@ import {
   Text,
   StyleSheet,
   ScrollView,
-  type LayoutChangeEvent,
+  type StyleProp,
+  type TextStyle,
 } from "react-native";
 
 import type { MarkdownNode } from "../headless";
@@ -238,7 +239,7 @@ const CellContent: React.FC<{
   node: MarkdownNode;
   Renderer: React.ComponentType<NodeRendererProps>;
   styles: ReturnType<typeof createTableStyles>;
-  textStyle?: any;
+  textStyle?: StyleProp<TextStyle>;
 }> = ({ node, Renderer, styles, textStyle }) => {
   if (!node.children || node.children.length === 0) {
     return <Text style={textStyle}>{node.content ?? ""}</Text>;

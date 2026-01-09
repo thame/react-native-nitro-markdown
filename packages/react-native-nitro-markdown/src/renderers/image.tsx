@@ -3,6 +3,7 @@ import { View, Text, Image as RNImage, StyleSheet } from "react-native";
 
 import { parseMarkdownWithOptions, type MarkdownNode } from "../headless";
 import type { NodeRendererProps } from "../MarkdownContext";
+import { useMarkdownContext } from "../MarkdownContext";
 
 const renderInlineContent = (
   node: MarkdownNode,
@@ -27,8 +28,6 @@ interface ImageProps {
 
   Renderer?: React.ComponentType<NodeRendererProps>;
 }
-
-import { useMarkdownContext } from "../MarkdownContext";
 
 export const Image: React.FC<ImageProps> = ({ url, title, alt, Renderer }) => {
   const [loading, setLoading] = useState(true);

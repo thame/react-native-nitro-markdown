@@ -31,7 +31,7 @@ import { TableRenderer } from "./renderers/table";
 import { Image } from "./renderers/image";
 import { MathInline, MathBlock } from "./renderers/math";
 
-interface MarkdownProps {
+export interface MarkdownProps {
   children: string;
   options?: ParserOptions;
   renderers?: CustomRenderers;

@@ -1,22 +1,20 @@
-import React, { ReactNode } from "react";
+import React, { ReactNode, useMemo } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   Platform,
-  ViewStyle,
-  TextStyle,
+  type ViewStyle,
+  type TextStyle,
 } from "react-native";
+import { useMarkdownContext } from "../MarkdownContext";
 
 interface CodeBlockProps {
   language?: string;
   content: string;
   style?: ViewStyle;
 }
-
-import { useMarkdownContext } from "../MarkdownContext";
-import { useMemo } from "react";
 
 export const CodeBlock: React.FC<CodeBlockProps> = ({
   language,
@@ -87,3 +85,4 @@ export const InlineCode: React.FC<InlineCodeProps> = ({ children, style }) => {
   );
   return <Text style={[styles.codeInline, style]}>{children}</Text>;
 };
+

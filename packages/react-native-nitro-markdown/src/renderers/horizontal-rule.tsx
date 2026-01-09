@@ -1,8 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, StyleSheet } from "react-native";
-
 import { useMarkdownContext } from "../MarkdownContext";
-import { useMemo } from "react";
 
 export const HorizontalRule: React.FC = () => {
   const { theme } = useMarkdownContext();
@@ -19,3 +17,4 @@ export const HorizontalRule: React.FC = () => {
   );
   return <View style={styles.horizontalRule} />;
 };
+

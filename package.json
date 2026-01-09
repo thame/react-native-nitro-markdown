@@ -25,7 +25,10 @@
     "example:prebuild:clean": "turbo run prebuild:clean --filter=example"
   },
   "devDependencies": {
+    "@types/commonmark": "^0.27.10",
     "@types/jest": "^29.5.14",
+    "@types/markdown-it": "^14.1.2",
+    "@types/marked": "^6.0.0",
     "@types/node": "^20.0.0",
     "@types/react": "^19.0.2",
     "@types/react-native": "^0.73.0",

@@ -1,14 +1,12 @@
-import React, { ReactNode } from "react";
-import { Text, StyleSheet, TextStyle } from "react-native";
+import React, { ReactNode, useMemo } from "react";
+import { Text, StyleSheet, type TextStyle } from "react-native";
+import { useMarkdownContext } from "../MarkdownContext";
 
 interface HeadingProps {
   level: number;
   children: ReactNode;
   style?: TextStyle;
 }
-
-import { useMarkdownContext } from "../MarkdownContext";
-import { useMemo } from "react";
 
 export const Heading: React.FC<HeadingProps> = ({ level, children, style }) => {
   const { theme } = useMarkdownContext();
@@ -65,3 +63,4 @@ export const Heading: React.FC<HeadingProps> = ({ level, children, style }) => {
 
   return <Text style={[...headingStyles, style]}>{children}</Text>;
 };
+
