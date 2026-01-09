@@ -1,4 +1,9 @@
+/**
+ * Default theme configuration for the Markdown components.
+ * Optimized for a modern dark mode aesthetic.
+ */
 export const defaultMarkdownTheme = {
+  /** Colors used throughout the markdown renderer */
   colors: {
     text: "#e0e0e0",
     textMuted: "#888",
@@ -17,6 +22,7 @@ export const defaultMarkdownTheme = {
     tableRowEven: "#0f172a",
     tableRowOdd: "#1e293b",
   },
+  /** Standard spacing increments */
   spacing: {
     xs: 4,
     s: 8,
@@ -24,6 +30,7 @@ export const defaultMarkdownTheme = {
     l: 16,
     xl: 24,
   },
+  /** Font sizes for different text elements */
   fontSizes: {
     xs: 12,
     s: 14,
@@ -39,4 +46,7 @@ export const defaultMarkdownTheme = {
   },
 };
 
+/**
+ * Type definition for the Markdown theme.
+ */
 export type MarkdownTheme = typeof defaultMarkdownTheme;

@@ -20,7 +20,7 @@ export type { ParserOptions } from "./Markdown.nitro";
  * Each node has a type and optional properties depending on the node type.
  */
 export interface MarkdownNode {
-  /** The type of markdown element this node represents */
+  /** The type of markdown element this node represents. Used to decide how to render the node. */
   type:
     | "document"
     | "heading"
@@ -49,29 +49,29 @@ export interface MarkdownNode {
     | "math_block"
     | "html_block"
     | "html_inline";
-  /** Text content for text, code, and similar nodes */
+  /** Text content for text, code, and similar nodes. */
   content?: string;
-  /** Heading level (1-6) for heading nodes */
+  /** Heading level (1-6) for heading nodes. */
   level?: number;
-  /** URL for link and image nodes */
+  /** URL for link and image nodes. */
   href?: string;
-  /** Title attribute for link and image nodes */
+  /** Title attribute for link and image nodes. */
   title?: string;
-  /** Alt text for image nodes */
+  /** Alt text for image nodes. */
   alt?: string;
-  /** Programming language for code blocks */
+  /** Programming language for code blocks (e.g., 'typescript', 'javascript'). */
   language?: string;
-  /** Whether list is ordered (numbered) */
+  /** Whether a list is ordered (numbered) or unordered. */
   ordered?: boolean;
-  /** Start number for ordered lists */
+  /** The starting number for ordered lists. */
   start?: number;
-  /** Whether task list item is checked */
+  /** Whether a task list item is currently checked. */
   checked?: boolean;
-  /** Whether table cell is a header cell */
+  /** Whether a table cell is part of the header row. */
   isHeader?: boolean;
-  /** Text alignment for table cells */
+  /** Text alignment for table cells: 'left', 'center', or 'right'. */
   align?: string;
-  /** Child nodes */
+  /** Nested child nodes for hierarchical elements like paragraphs, lists, and tables. */
   children?: MarkdownNode[];
 }
 

@@ -32,10 +32,25 @@ import { Image } from "./renderers/image";
 import { MathInline, MathBlock } from "./renderers/math";
 
 export interface MarkdownProps {
+  /**
+   * The markdown string to parse and render.
+   */
   children: string;
+  /**
+   * Parser options to enable GFM or Math support.
+   */
   options?: ParserOptions;
+  /**
+   * Custom renderers for specific markdown node types.
+   */
   renderers?: CustomRenderers;
+  /**
+   * Custom theme to override default styles.
+   */
   theme?: Partial<MarkdownTheme>;
+  /**
+   * Optional style for the container view.
+   */
   style?: StyleProp<ViewStyle>;
 }
 

@@ -42,6 +42,9 @@ Choose your preferred package manager to install the package and its core depend
 npm install react-native-nitro-markdown react-native-nitro-modules
 ```
 
+> **Note:** If you want to use **Math** (LaTeX) or certain **Image** features, you should also install the optional peer dependencies:
+> `npm install react-native-svg react-native-mathjax-svg`
+
 **Yarn**
 
 ```bash
@@ -147,6 +150,8 @@ const myTheme = {
 };
 
 <Markdown theme={myTheme}>{"# Custom Branded Markdown"}</Markdown>;
+
+> **Tip:** The default theme is optimized for Dark Mode. For Light Mode, pass a custom theme object or check out the [theme source](packages/react-native-nitro-markdown/src/theme.ts) to see all available tokens.
 ```
 
 ### Option 4: Headless (Minimal Bundle)
@@ -209,10 +214,10 @@ export function AIResponseStream() {
 ---
 
 ### Basic Parsing API
-The parsing is synchronous and instant. It returns a fully typed JSON AST.
+The parsing is synchronous and instant. It returns a fully typed JSON AST. We recommend using the `/headless` entry point if you only need the parser.
 
 ```typescript
-import { parseMarkdown } from "react-native-nitro-markdown";
+import { parseMarkdown } from "react-native-nitro-markdown/headless";
 
 const ast = parseMarkdown(`
 # Hello World
@@ -222,12 +227,19 @@ console.log(ast);
 // Output: { type: "document", children: [...] }
 ```
 
+### Options
+
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `gfm` | `boolean` | `false` | Enable GitHub Flavored Markdown (Tables, Strikethrough, Autolinks, TaskLists). |
+| `math` | `boolean` | `false` | Enable LaTeX Math support (`$` and `$$`). |
+
 ### Parser Options (GFM & Math)
 
 Enable GitHub Flavored Markdown (Tables, TaskLists) or LaTeX Math support.
 
 ```typescript
-import { parseMarkdownWithOptions } from "react-native-nitro-markdown";
+import { parseMarkdownWithOptions } from "react-native-nitro-markdown/headless";
 
 const ast = parseMarkdownWithOptions(markdown, {
   gfm: true, // Tables (supports complex nested content!), Strikethrough, Autolinks, TaskLists
