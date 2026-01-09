@@ -1,5 +1,6 @@
 <p align="center">
   <img src="./readme/demo.gif" alt="react-native-nitro-markdown demo" width="300" />
+  <img src="./readme/stream-demo.gif" alt="react-native-nitro-markdown stream demo" width="300" />
 </p>
 
 # react-native-nitro-markdown 🚀
@@ -41,6 +42,9 @@ Choose your preferred package manager to install the package and its core depend
 npm install react-native-nitro-markdown react-native-nitro-modules
 ```
 
+> **Note:** If you want to use **Math** (LaTeX) or certain **Image** features, you should also install the optional peer dependencies:
+> `npm install react-native-svg react-native-mathjax-svg`
+
 **Yarn**
 
 ```bash
@@ -80,112 +84,166 @@ npx expo prebuild
 
 ## 💻 Usage
 
-### Basic Parsing
+### Option 1: Batteries Included (Simplest)
 
-The parsing is synchronous and instant. It returns a fully typed JSON AST.
+Use the `Markdown` component with built-in premium dark-mode styling:
 
-```typescript
-import { parseMarkdown } from "react-native-nitro-markdown";
+```tsx
+import { Markdown } from "react-native-nitro-markdown";
 
-const markdown = `
-# Hello World
-This is **bold** text and a [link](https://github.com).
-`;
-
-const ast = parseMarkdown(markdown);
-console.log(ast);
-// Output: { type: "document", children: [...] }
+export function MyComponent() {
+  return (
+    <Markdown options={{ gfm: true }}>
+      {"# Hello World\nThis is **bold** text."}
+    </Markdown>
+  );
+}
 ```
 
-### Advanced Options (GFM & Math)
+### Option 2: Custom Renderers
 
-Enable GitHub Flavored Markdown (Tables, TaskLists) or LaTeX Math support.
+Override specific node types while keeping defaults for everything else:
 
-```typescript
-import { parseMarkdown } from "react-native-nitro-markdown";
+```tsx
+import {
+  Markdown,
+  Heading,
+  type CustomRenderers,
+} from "react-native-nitro-markdown";
+import MathJax from "react-native-mathjax-svg";
 
-const ast = parseMarkdown(markdown, {
-  gfm: true, // Tables, Strikethrough, Autolinks, TaskLists
-  math: true, // $E=mc^2$ and $$block$$
-  wiki: true, // [[WikiLinks]]
-});
+const renderers: CustomRenderers = {
+  // Custom styled heading
+  heading: ({ node, children }) => (
+    <Heading level={node.level ?? 1}>
+      <Text style={{ color: "pink" }}>{children}</Text>
+    </Heading>
+  ),
+  // Custom math renderer
+  math_inline: ({ node }) => <MathJax fontSize={16}>{node.content}</MathJax>,
+  math_block: ({ node }) => <MathJax fontSize={20}>{node.content}</MathJax>,
+};
+
+<Markdown renderers={renderers} options={{ gfm: true, math: true }}>
+  {markdown}
+</Markdown>;
+```
+
+### Option 3: Custom Theming
+
+You can easily customize the look and feel of the default components by passing a `theme` object. This allows you to match your app's brand without writing custom renderers for everything.
+
+```tsx
+import { Markdown } from "react-native-nitro-markdown";
+
+const myTheme = {
+  colors: {
+    text: "#2D3748",
+    heading: "#1A202C",
+    link: "#3182CE",
+    tableBorder: "#E2E8F0",
+    tableHeader: "#F7FAFC",
+  },
+  spacing: {
+    m: 16,
+  },
+};
+
+<Markdown theme={myTheme}>{"# Custom Branded Markdown"}</Markdown>;
+
+> **Tip:** The default theme is optimized for Dark Mode. For Light Mode, pass a custom theme object or check out the [theme source](packages/react-native-nitro-markdown/src/theme.ts) to see all available tokens.
+```
+
+### Option 4: Headless (Minimal Bundle)
+
+For maximum control, data processing, or minimal JS overhead:
+
+```tsx
+/**
+ * Only imports the parser.
+ * Zero UI overhead, purely synchronous AST generation.
+ */
+import { parseMarkdown } from "react-native-nitro-markdown/headless";
+
+const ast = parseMarkdown("# Hello World");
+```
+
+### Option 5: High-Performance Streaming (LLMs)
+
+When streaming text token-by-token (e.g., from ChatGPT or Gemini), re-parsing the entire document in JavaScript for every token is too slow.
+
+**Nitro Markdown** enables **Native Streaming** via JSI. The text buffer is maintained in C++ and updates are pushed directly to the native view, bypassing React completely.
+
+```tsx
+import {
+  MarkdownStream,
+  useMarkdownSession,
+} from "react-native-nitro-markdown";
+
+export function AIResponseStream() {
+  // 1. Create a native session
+  const session = useMarkdownSession();
+
+  useEffect(() => {
+    // 2. Append chunks directly to C++ (Zero-Latency)
+    // Example: Socket.on('data', (chunk) => session.getSession().append(chunk));
+
+    session.getSession().append("Hello **Nitro**!");
+
+    return () => session.clear();
+  }, [session]);
+
+  // 3. Render the localized stream component
+  return (
+    <MarkdownStream session={session.getSession()} options={{ gfm: true }} />
+  );
+}
 ```
 
 ---
 
-## 🎨 Rendering
+## 🛠️ Headless vs. Non-Headless
 
-This library is a **Parser Only**. It gives you the raw data (AST) so you can render it with native components (`<Text>`, `<View>`) for maximum performance.
+| Feature         | **Headless** (`/headless`)  | **Non-Headless** (`default`)       |
+| :-------------- | :-------------------------- | :--------------------------------- |
+| **Logic**       | Raw C++ md4c Parser         | Parser + Full UI Renderer          |
+| **Output**      | JSON AST Tree               | React Native Views                 |
+| **Best For**    | Search Indexing, Custom UIs | Fast Implementation, Documentation |
+| **JS Overhead** | ~4 KB                       | ~60 KB                             |
 
-Here is a simple recursive renderer example:
+---
 
-```tsx
-import React from "react";
-import { Text, View, StyleSheet } from "react-native";
-import { parseMarkdown, type MarkdownNode } from "react-native-nitro-markdown";
+### Basic Parsing API
+The parsing is synchronous and instant. It returns a fully typed JSON AST. We recommend using the `/headless` entry point if you only need the parser.
 
-export function MarkdownView({ content }: { content: string }) {
-  const ast = parseMarkdown(content, { gfm: true });
+```typescript
+import { parseMarkdown } from "react-native-nitro-markdown/headless";
 
-  return (
-    <View style={styles.container}>
-      <Renderer node={ast} />
-    </View>
-  );
-}
+const ast = parseMarkdown(`
+# Hello World
+This is **bold** text and a [link](https://github.com).
+`);
+console.log(ast);
+// Output: { type: "document", children: [...] }
+```
 
-function Renderer({ node }: { node: MarkdownNode }) {
-  switch (node.type) {
-    case "document":
-      return (
-        <View>
-          {node.children?.map((child, i) => (
-            <Renderer key={i} node={child} />
-          ))}
-        </View>
-      );
+### Options
 
-    case "heading":
-      return (
-        <Text style={styles.h1}>
-          {node.children?.map((c, i) => (
-            <Renderer key={i} node={c} />
-          ))}
-        </Text>
-      );
+| Option | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `gfm` | `boolean` | `false` | Enable GitHub Flavored Markdown (Tables, Strikethrough, Autolinks, TaskLists). |
+| `math` | `boolean` | `false` | Enable LaTeX Math support (`$` and `$$`). |
 
-    case "paragraph":
-      return (
-        <Text style={styles.p}>
-          {node.children?.map((child, i) => (
-            <Renderer key={i} node={child} />
-          ))}
-        </Text>
-      );
+### Parser Options (GFM & Math)
 
-    case "text":
-      return <Text>{node.content}</Text>;
+Enable GitHub Flavored Markdown (Tables, TaskLists) or LaTeX Math support.
 
-    case "bold":
-      return (
-        <Text style={styles.bold}>
-          {node.children?.map((c, i) => (
-            <Renderer key={i} node={c} />
-          ))}
-        </Text>
-      );
+```typescript
+import { parseMarkdownWithOptions } from "react-native-nitro-markdown/headless";
 
-    // Handle 'table', 'code_block', 'math_inline' etc...
-    default:
-      return null;
-  }
-}
-
-const styles = StyleSheet.create({
-  container: { padding: 16 },
-  h1: { fontSize: 24, fontWeight: "bold", marginVertical: 8 },
-  p: { fontSize: 16, lineHeight: 24, marginBottom: 8 },
-  bold: { fontWeight: "700" },
+const ast = parseMarkdownWithOptions(markdown, {
+  gfm: true, // Tables (supports complex nested content!), Strikethrough, Autolinks, TaskLists
+  math: true, // $E=mc^2$ and $$block$$
 });
 ```
 

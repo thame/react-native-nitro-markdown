@@ -2,6 +2,8 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
+    "skipLibCheck": true,
+    "types": ["react", "react-native", "node"],
     "paths": {
       "react-native-nitro-markdown": ["../../packages/react-native-nitro-markdown/src"]
     }

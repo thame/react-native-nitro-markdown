@@ -59,9 +59,11 @@ jobs:
       - name: Verify build artifacts
         run: |
           # Check that lib directories were created
-          [ -d "packages/react-native-nitro-markdown/lib" ] || exit 1
-          # Check that TypeScript definitions exist
-          [ -f "packages/react-native-nitro-markdown/lib/typescript/index.d.ts" ] || exit 1
+          [ -d "packages/react-native-nitro-markdown/lib/commonjs" ] || exit 1
+          [ -d "packages/react-native-nitro-markdown/lib/module" ] || exit 1
+          # Check that TypeScript definitions exist for both targets
+          [ -f "packages/react-native-nitro-markdown/lib/typescript/commonjs/index.d.ts" ] || exit 1
+          [ -f "packages/react-native-nitro-markdown/lib/typescript/module/index.d.ts" ] || exit 1
           echo "✅ Build artifacts verified"
 
       - name: Test package packaging
