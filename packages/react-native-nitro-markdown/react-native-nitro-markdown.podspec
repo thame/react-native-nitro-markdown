@@ -22,7 +22,7 @@ Pod::Spec.new do |s|
   s.pod_target_xcconfig = {
     "CLANG_CXX_LANGUAGE_STANDARD" => "c++20",
     "CLANG_CXX_LIBRARY" => "libc++",
-    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) MD4C_USE_UTF8=1",
+    "GCC_PREPROCESSOR_DEFINITIONS" => "$(inherited) MD4C_USE_UTF8=1 FOLLY_NO_CONFIG FOLLY_CFG_NO_COROUTINES",
     "HEADER_SEARCH_PATHS" => [
       "\"$(inherited)\"",
       "\"$(PODS_ROOT)/Headers/Private/Yoga\"",
@@ -36,6 +36,8 @@ Pod::Spec.new do |s|
 
   s.dependency "React-Core"
   s.dependency "React-Fabric"
+  s.dependency 'React-jsi'
+  s.dependency 'React-callinvoker'
 
   load 'nitrogen/generated/ios/NitroMarkdown+autolinking.rb'
   add_nitrogen_files(s)
