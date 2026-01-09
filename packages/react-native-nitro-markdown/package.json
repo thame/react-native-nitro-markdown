@@ -4,7 +4,7 @@
   "description": "High-performance Markdown parser for React Native using Nitro Modules and md4c",
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
-  "types": "lib/typescript/module/index.d.ts",
+  "types": "lib/typescript/commonjs/index.d.ts",
   "react-native": "src/index.ts",
   "source": "src/index.ts",
   "exports": {
@@ -88,6 +88,7 @@
   "devDependencies": {
     "@types/react": "^19.2.7",
     "@types/react-native": "^0.73.0",
+    "react-native-builder-bob": "^0.40.17",
     "react-native-nitro-modules": "*",
     "typescript": "^5.9.3"
   },

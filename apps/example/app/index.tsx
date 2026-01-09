@@ -88,9 +88,9 @@ export default function BenchmarkScreen() {
       const markedSpeedup = (markedTime / nitroTime).toFixed(1);
 
       addLog("🏆 SPEED COMPARISON:");
-      addLog(`   Nitro vs CommonMark: ${commonmarkSpeedup}x faster`);
-      addLog(`   Nitro vs Markdown-It: ${markdownItSpeedup}x faster`);
-      addLog(`   Nitro vs Marked: ${markedSpeedup}x faster`);
+      addLog(`   vs CommonMark: ${commonmarkSpeedup}x faster`);
+      addLog(`   vs Markdown-It: ${markdownItSpeedup}x faster`);
+      addLog(`   vs Marked: ${markedSpeedup}x faster`);
     } catch (e) {
       console.error("[Benchmark] Error:", e);
       setError(e instanceof Error ? e.message : "Unknown error");
