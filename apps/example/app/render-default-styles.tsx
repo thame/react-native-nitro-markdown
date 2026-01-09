@@ -71,10 +71,9 @@ export default function RenderDefaultStylesScreen() {
             paragraph: ({ children }) => (
               <Paragraph
                 style={{
-                  fontFamily: Platform.select({
-                    ios: "Courier",
-                    android: "monospace",
-                  }),
+                  backgroundColor: "rgba(0,0,0,0.02)",
+                  padding: 4,
+                  borderRadius: 4,
                 }}
               >
                 {children}
